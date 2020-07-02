@@ -43,19 +43,21 @@ public class ScoreBoard extends JPanel {
         add(scoreLabel);
 
         level = 0;
-        levelLabel = new JLabel("LEVEL:" + level);
+        levelLabel = new JLabel("LEVEL: " + level);
         levelLabel.setForeground(Color.white);
         levelLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 17 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
         levelLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(levelLabel);
 
-        linesLabel = new JLabel("LINES: 0");
+        lines = 0;
+        linesLabel = new JLabel("LINES: " + lines);
         linesLabel.setForeground(Color.white);
         linesLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 18 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
         linesLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(linesLabel);
 
-        timeLabel = new JLabel("TIME: 0");
+        time = 0;
+        timeLabel = new JLabel("TIME: " + time);
         timeLabel.setForeground(Color.white);
         timeLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 19 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
         timeLabel.setFont(new Font("Century", Font.BOLD, 15));
@@ -99,10 +101,11 @@ public class ScoreBoard extends JPanel {
         g.fillRect((int) (0.75 * rectSize), 16 * rectSize,  (int) (4.5 * rectSize), 4 * rectSize);
 
         for (int[] coords: previewTetronimo.pos) {
-            Color color = tetronimoColors[previewTetronimo.ordinal()];
-            Color borderColor = tetronimoBorderColors[previewTetronimo.ordinal()];
+            Color color = tetronimoColors[previewTetronimo.tetronimoType.ordinal()];
+            Color borderColor = tetronimoBorderColors[previewTetronimo.tetronimoType.ordinal()];
 
-            if (previewTetronimo == Tetronimo.I_Tetronimo || previewTetronimo == Tetronimo.O_Tetronimo) {
+            if (previewTetronimo .tetronimoType == TetronimoType.I_Tetronimo ||
+                    previewTetronimo.tetronimoType == TetronimoType.O_Tetronimo) {
                 drawRect((Graphics2D) g, coords[0] + 3, coords[1] + 1, color, borderColor);
             } else {
                 drawRect((Graphics2D) g, coords[0] + 3.5, coords[1] + 1, color, borderColor);

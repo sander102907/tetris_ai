@@ -2,8 +2,6 @@ package tetris.game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.*;
 import java.util.Timer;
 
@@ -28,111 +26,17 @@ public class Tetris extends JPanel implements Runnable {
     private ScoreBoard scoreBoard;
 
 
-//    private final int leftKey, rightKey, rotateKey, softDropKey, hardDropKey;
-
-
     public Tetris() {
         setPreferredSize(new Dimension(height/2, height));
         setBorder(BorderFactory.createLineBorder(Color.white));
         setBackground(Color.black);
-//        setFocusable(true);
-//        requestFocusInWindow();
-//
-//        this.leftKey = leftKey;
-//        this.rightKey = rightKey;
-//        this.rotateKey = rotateKey;
-//        this.softDropKey = softDropKey;
-//        this.hardDropKey = hardDropKey;
-
-//        addKeyListener(new KeyListener() {
-//            @Override
-//            public void keyTyped(KeyEvent e) {
-//
-//            }
-//
-//            @Override
-//            public void keyPressed(KeyEvent e) {
-//                if (e.getKeyCode() == leftKey) {
-//                    if (canMoveLeft()) {
-//                        currentColumn--;
-//                        soundPlayer.play("move.wav", false);
-//                    }
-//                } else if (e.getKeyCode() == rightKey) {
-//                    if (canMoveRight()) {
-//                        currentColumn++;
-//                        soundPlayer.play("move.wav", false);
-//                    }
-//                } else if (e.getKeyCode() == rotateKey) {
-//                    if (canRotate()) {
-//                        rotate();
-//                        soundPlayer.play("rotate.wav", false);
-//                    }
-//                } else if (e.getKeyCode() == softDropKey) {
-//                    if (!softDrop) {
-//                        softDrop = true;
-//                        gravityThread.interrupt();
-//                    }
-//                } else if (e.getKeyCode() == hardDropKey) {
-//                    while(canMoveDown(currentRow)) {
-//                        currentRow += 1;
-//                        scoreBoard.addScore(2);
-//                    }
-//                    hardDrop = true;
-//                }
-//
-//                switch (e.getKeyCode()) {
-//                    case leftKey:
-//                        if (canMoveLeft()) {
-//                            currentColumn--;
-//                            soundPlayer.play("move.wav", false);
-//                        }
-//                        break;
-//
-//                    case KeyEvent.VK_RIGHT:
-//                        if (canMoveRight()) {
-//                            currentColumn++;
-//                            soundPlayer.play("move.wav", false);
-//                        }
-//                        break;
-//
-//                    case KeyEvent.VK_UP:
-//                        if (canRotate()) {
-//                            rotate();
-//                            soundPlayer.play("rotate.wav", false);
-//                        }
-//                        break;
-//
-//                    case KeyEvent.VK_DOWN:
-//                        if (!softDrop) {
-//                            softDrop = true;
-//                            gravityThread.interrupt();
-//                        }
-//                        break;
-//
-//                    case KeyEvent.VK_SPACE:
-//                        while(canMoveDown(currentRow)) {
-//                            currentRow += 1;
-//                            scoreBoard.addScore(2);
-//                        }
-//                        hardDrop = true;
-////                        tetronimoLanded();
-//                        break;
-//                }
-//                repaint();
-//            }
-//
-//            @Override
-//            public void keyReleased(KeyEvent e) {
-//                softDrop = false;
-//            }
-//        });
     }
 
     private void getTetronimo() {
         currentTetronimo = nextTetronimo;
         nextTetronimo = getRandomTetronimo();
         scoreBoard.drawPreviewTetronimo(nextTetronimo);
-        currentRow = -1;
+        currentRow = 0;
         currentColumn = 5;
     }
 
@@ -154,7 +58,7 @@ public class Tetris extends JPanel implements Runnable {
 
     public void rotateTetronimo() {
         if (canRotate()) {
-            rotate();
+            currentTetronimo.rotate();
             soundPlayer.play("rotate.wav", false);
         }
         repaint();
@@ -189,8 +93,8 @@ public class Tetris extends JPanel implements Runnable {
     private Tetronimo getRandomTetronimo() {
         if (randomTetronimos == null || randomTetronimos.isEmpty()) {
             randomTetronimos = new LinkedHashSet<>();
-            while (randomTetronimos.size() < Tetronimo.values().length) {
-                randomTetronimos.add(rand.nextInt(Tetronimo.values().length));
+            while (randomTetronimos.size() < TetronimoType.values().length) {
+                randomTetronimos.add(rand.nextInt(TetronimoType.values().length));
             }
         }
 
@@ -198,7 +102,8 @@ public class Tetris extends JPanel implements Runnable {
         int randomTetronimo = it.next();
         it.remove();
 
-        return Tetronimo.values()[randomTetronimo];
+
+        return new Tetronimo(TetronimoType.values()[randomTetronimo]);
     }
 
     private void start() {
@@ -225,6 +130,8 @@ public class Tetris extends JPanel implements Runnable {
             Thread temp = gravityThread;
             gravityThread = null;
             temp.interrupt();
+            timer.cancel();
+            timer.purge();
         }
     }
 
@@ -232,6 +139,10 @@ public class Tetris extends JPanel implements Runnable {
     public void run() {
         while (Thread.currentThread() == gravityThread) {
             try {
+                if (currentRow < 1) {
+                    currentRow++;
+                }
+
                 if (softDrop) {
                     Thread.sleep(softDropSpeed);
                     scoreBoard.addScore(1);
@@ -286,11 +197,13 @@ public class Tetris extends JPanel implements Runnable {
     }
 
     private void drawTetronimo(Graphics2D g, Tetronimo tetronimo) {
-        Color color = tetronimoColors[tetronimo.ordinal()];
-        Color borderColor = tetronimoBorderColors[tetronimo.ordinal()];
+        if (currentRow > 1) {
+            Color color = tetronimoColors[tetronimo.tetronimoType.ordinal()];
+            Color borderColor = tetronimoBorderColors[tetronimo.tetronimoType.ordinal()];
 
-        for (int[] coords: tetronimo.pos) {
-            drawRect(g, coords[0] + currentColumn, coords[1] + currentRow, color, borderColor);
+            for (int[] coords : tetronimo.pos) {
+                drawRect(g, coords[0] + currentColumn, coords[1] + currentRow - 2, color, borderColor);
+            }
         }
     }
 
@@ -305,22 +218,24 @@ public class Tetris extends JPanel implements Runnable {
     private Boolean canMoveDown(int currentRow) {
         for (int[] coords: currentTetronimo.pos) {
             if (
-                    currentRow + coords[1] + 1 >= 0 &&
-                    currentColumn + coords[0] < grid.length &&
-                    currentColumn + coords[0] >= 0 &&
-                    (currentRow + coords[1] >= grid[0].length - 1 ||
+//                    currentRow + coords[1] + 1 >= 0 &&
+//                    currentColumn + coords[0] < grid.length &&
+//                    currentColumn + coords[0] >= 0 &&
+                   (currentRow + coords[1] >= grid[0].length - 1 ||
                     grid[currentColumn + coords[0]][currentRow + coords[1] + 1] != -1)
             ) {
                 return false;
             }
         }
+
         return true;
     }
 
     private Boolean canMoveLeft() {
+
         for (int[] coords: currentTetronimo.pos) {
             if (
-                    currentRow + coords[1] >= 0 &&
+//                    currentRow + coords[1] >= 0 &&
                     (currentColumn + coords[0] <= 0 ||
                     grid[currentColumn + coords[0] -1][currentRow + coords[1]] != -1)
             ) {
@@ -336,7 +251,10 @@ public class Tetris extends JPanel implements Runnable {
 
         for (int[] coords: currentTetronimo.pos) {
             if (
-                    currentRow + coords[0] >= 0 &&
+                    currentRow + coords[0] < 0 ||
+                    currentRow + coords[0] >= grid[0].length ||
+//                    currentColumn + coords[1] < 0 ||
+//                    currentColumn + coords[1] >= grid.length ||
                     grid[-coords[1] + currentColumn - offsets[0] - offsets[1]][coords[0] + currentRow] != -1
             ) {
                 return false;
@@ -350,7 +268,7 @@ public class Tetris extends JPanel implements Runnable {
     private Boolean canMoveRight() {
         for (int[] coords: currentTetronimo.pos) {
             if (
-                    currentRow + coords[1] >= 0 &&
+//                    currentRow + coords[1] >= 0 &&
                     (currentColumn + coords[0] >= grid.length - 1 ||
                     grid[currentColumn + coords[0] + 1][currentRow + coords[1]] != -1)
             ) {
@@ -377,17 +295,6 @@ public class Tetris extends JPanel implements Runnable {
         return new int[] {leftOffset, rightOffset};
     }
 
-    public void rotate() {
-        if (currentTetronimo != Tetronimo.O_Tetronimo) {
-            // Clockwise rotation
-            for (int[] coords : currentTetronimo.pos) {
-                int tmp = coords[0];
-                coords[0] = -coords[1];
-                coords[1] = tmp;
-            }
-        }
-    }
-
     private void tetronimoLanded() {
         // get rows tetronimo has landed
         int minRow = rows - 1;
@@ -395,19 +302,21 @@ public class Tetris extends JPanel implements Runnable {
 
         // update grid with landed tetronimo
         for (int[] coords: currentTetronimo.pos) {
-            grid[coords[0] + currentColumn][coords[1] + currentRow] = currentTetronimo.ordinal();
+            if (currentRow >= 0) {
+                grid[coords[0] + currentColumn][coords[1] + currentRow] = currentTetronimo.tetronimoType.ordinal();
 
-            if (coords[1] + currentRow < minRow) {
-                minRow = coords[1] + currentRow;
-            }
+                if (coords[1] + currentRow < minRow) {
+                    minRow = coords[1] + currentRow;
+                }
 
-            if (coords[1] + currentRow > maxRow) {
-                maxRow = coords[1] + currentRow;
+                if (coords[1] + currentRow > maxRow) {
+                    maxRow = coords[1] + currentRow;
+                }
             }
         }
 
         // Check if you are game over
-        if (currentRow < 1) {
+        if (currentRow < 4) {
             stop();
         }
 
@@ -464,7 +373,7 @@ public class Tetris extends JPanel implements Runnable {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[0].length; j++) {
                 if (grid[i][j] != -1) {
-                    drawRect(g, i, j, tetronimoColors[grid[i][j]], tetronimoBorderColors[grid[i][j]]);
+                    drawRect(g, i, j - 2, tetronimoColors[grid[i][j]], tetronimoBorderColors[grid[i][j]]);
                 }
             }
         }
@@ -503,10 +412,10 @@ public class Tetris extends JPanel implements Runnable {
             row += 1;
         }
 
-        Color borderColor = tetronimoBorderColors[currentTetronimo.ordinal()];
+        Color borderColor = tetronimoBorderColors[currentTetronimo.tetronimoType.ordinal()];
 
         for (int[] coords: currentTetronimo.pos) {
-            drawRect(g, coords[0] + currentColumn, coords[1] + row, Color.black, borderColor);
+            drawRect(g, coords[0] + currentColumn, coords[1] + row - 2, Color.black, borderColor);
         }
     }
 

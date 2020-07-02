@@ -4,10 +4,10 @@ import java.awt.*;
 
 public final class Config {
     final static int height = 1000;
-    final static int rows = 20;
+    final static int rows = 22;
     final static int columns = 10;
     final static int scoreBoardWidth = 300;
-    final static int rectSize = height/rows;
+    final static int rectSize = height/(rows-2);
     final static Color[] tetronimoColors = {
             new Color(85, 159, 219), // I piece
             new Color(16, 8, 224), //J piece
