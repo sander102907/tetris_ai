@@ -15,37 +15,50 @@ public class ScoreBoard extends JPanel {
     private int time;
 
     private Tetronimo previewTetronimo;
+    JLabel previewTetronimoLabel;
     JLabel scoreLabel;
     JLabel levelLabel;
     JLabel linesLabel;
     JLabel timeLabel;
 
     public ScoreBoard() {
+        setOpaque(false);
         setPreferredSize(new Dimension(scoreBoardWidth, height));
-        setBorder(BorderFactory.createLineBorder(Color.white));
-        setBackground(Color.black);
+//        setBorder(BorderFactory.createLineBorder(Color.white));
+        setBackground(new Color(0, 0, 0, 200));
+
         setLayout(null);
+
+        previewTetronimoLabel = new JLabel("NEXT:");
+        previewTetronimoLabel.setForeground(Color.white);
+        previewTetronimoLabel.setBounds(scoreBoardMargin + 20, 0, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        previewTetronimoLabel.setFont(new Font("Century", Font.BOLD, 15));
+        add(previewTetronimoLabel);
 
         score = 0;
         scoreLabel = new JLabel("SCORE:" + score);
         scoreLabel.setForeground(Color.white);
-        scoreLabel.setBounds(scoreBoardMargin, 16 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        scoreLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 16 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        scoreLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(scoreLabel);
 
         level = 0;
         levelLabel = new JLabel("LEVEL:" + level);
         levelLabel.setForeground(Color.white);
-        levelLabel.setBounds(scoreBoardMargin, 17 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        levelLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 17 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        levelLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(levelLabel);
 
         linesLabel = new JLabel("LINES: 0");
         linesLabel.setForeground(Color.white);
-        linesLabel.setBounds(scoreBoardMargin, 18 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        linesLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 18 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        linesLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(linesLabel);
 
         timeLabel = new JLabel("TIME: 0");
         timeLabel.setForeground(Color.white);
-        timeLabel.setBounds(scoreBoardMargin, 19 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        timeLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 19 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        timeLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(timeLabel);
     }
 
@@ -79,6 +92,11 @@ public class ScoreBoard extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        g.setColor(new Color(0, 0, 0, 220));
+        g.fillRect((int) (0.75 * rectSize), 0, (int) (4.5 * rectSize), 4 * rectSize);
+
+        g.fillRect((int) (0.75 * rectSize), 16 * rectSize,  (int) (4.5 * rectSize), 4 * rectSize);
 
         for (int[] coords: previewTetronimo.pos) {
             Color color = tetronimoColors[previewTetronimo.ordinal()];

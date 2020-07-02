@@ -10,13 +10,9 @@ public class SoundPlayer {
         try {
             final Clip clip = (Clip)AudioSystem.getLine(new Line.Info(Clip.class));
 
-            clip.addLineListener(new LineListener() {
-                @Override
-                public void update(LineEvent event)
-                {
-                    if (event.getType() == LineEvent.Type.STOP)
-                        clip.close();
-                }
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP)
+                    clip.close();
             });
 
             clip.open(AudioSystem.getAudioInputStream(file));

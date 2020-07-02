@@ -32,8 +32,6 @@ public final class Config {
 
     final static int scoreBoardMargin = 30;
 
-    final static int amtLinesLevelUp = 10;
-
     final static int lineScore(int level, int amtLines) {
         if (amtLines == 1) {
             return 40 * (level + 1);

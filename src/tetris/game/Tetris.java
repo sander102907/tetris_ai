@@ -28,67 +28,104 @@ public class Tetris extends JPanel implements Runnable {
     private ScoreBoard scoreBoard;
 
 
+//    private final int leftKey, rightKey, rotateKey, softDropKey, hardDropKey;
+
+
     public Tetris() {
         setPreferredSize(new Dimension(height/2, height));
         setBorder(BorderFactory.createLineBorder(Color.white));
         setBackground(Color.black);
-        setFocusable(true);
-        requestFocusInWindow();
+//        setFocusable(true);
+//        requestFocusInWindow();
+//
+//        this.leftKey = leftKey;
+//        this.rightKey = rightKey;
+//        this.rotateKey = rotateKey;
+//        this.softDropKey = softDropKey;
+//        this.hardDropKey = hardDropKey;
 
-        addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_LEFT:
-                        if (canMoveLeft()) {
-                            currentColumn--;
-                            soundPlayer.play("move.wav", false);
-                        }
-                        break;
-
-                    case KeyEvent.VK_RIGHT:
-                        if (canMoveRight()) {
-                            currentColumn++;
-                            soundPlayer.play("move.wav", false);
-                        }
-                        break;
-
-                    case KeyEvent.VK_UP:
-                        if (canRotate()) {
-                            rotate();
-                            soundPlayer.play("rotate.wav", false);
-                        }
-                        break;
-
-                    case KeyEvent.VK_DOWN:
-                        if (!softDrop) {
-                            softDrop = true;
-                            gravityThread.interrupt();
-                        }
-                        break;
-
-                    case KeyEvent.VK_SPACE:
-                        while(canMoveDown(currentRow)) {
-                            currentRow += 1;
-                            scoreBoard.addScore(2);
-                        }
-                        hardDrop = true;
-//                        tetronimoLanded();
-                        break;
-                }
-                repaint();
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-                softDrop = false;
-            }
-        });
+//        addKeyListener(new KeyListener() {
+//            @Override
+//            public void keyTyped(KeyEvent e) {
+//
+//            }
+//
+//            @Override
+//            public void keyPressed(KeyEvent e) {
+//                if (e.getKeyCode() == leftKey) {
+//                    if (canMoveLeft()) {
+//                        currentColumn--;
+//                        soundPlayer.play("move.wav", false);
+//                    }
+//                } else if (e.getKeyCode() == rightKey) {
+//                    if (canMoveRight()) {
+//                        currentColumn++;
+//                        soundPlayer.play("move.wav", false);
+//                    }
+//                } else if (e.getKeyCode() == rotateKey) {
+//                    if (canRotate()) {
+//                        rotate();
+//                        soundPlayer.play("rotate.wav", false);
+//                    }
+//                } else if (e.getKeyCode() == softDropKey) {
+//                    if (!softDrop) {
+//                        softDrop = true;
+//                        gravityThread.interrupt();
+//                    }
+//                } else if (e.getKeyCode() == hardDropKey) {
+//                    while(canMoveDown(currentRow)) {
+//                        currentRow += 1;
+//                        scoreBoard.addScore(2);
+//                    }
+//                    hardDrop = true;
+//                }
+//
+//                switch (e.getKeyCode()) {
+//                    case leftKey:
+//                        if (canMoveLeft()) {
+//                            currentColumn--;
+//                            soundPlayer.play("move.wav", false);
+//                        }
+//                        break;
+//
+//                    case KeyEvent.VK_RIGHT:
+//                        if (canMoveRight()) {
+//                            currentColumn++;
+//                            soundPlayer.play("move.wav", false);
+//                        }
+//                        break;
+//
+//                    case KeyEvent.VK_UP:
+//                        if (canRotate()) {
+//                            rotate();
+//                            soundPlayer.play("rotate.wav", false);
+//                        }
+//                        break;
+//
+//                    case KeyEvent.VK_DOWN:
+//                        if (!softDrop) {
+//                            softDrop = true;
+//                            gravityThread.interrupt();
+//                        }
+//                        break;
+//
+//                    case KeyEvent.VK_SPACE:
+//                        while(canMoveDown(currentRow)) {
+//                            currentRow += 1;
+//                            scoreBoard.addScore(2);
+//                        }
+//                        hardDrop = true;
+////                        tetronimoLanded();
+//                        break;
+//                }
+//                repaint();
+//            }
+//
+//            @Override
+//            public void keyReleased(KeyEvent e) {
+//                softDrop = false;
+//            }
+//        });
     }
 
     private void getTetronimo() {
@@ -97,6 +134,52 @@ public class Tetris extends JPanel implements Runnable {
         scoreBoard.drawPreviewTetronimo(nextTetronimo);
         currentRow = -1;
         currentColumn = 5;
+    }
+
+    public void moveLeft() {
+        if (canMoveLeft()) {
+            currentColumn--;
+            soundPlayer.play("move.wav", false);
+        }
+        repaint();
+    }
+
+    public void moveRight() {
+        if (canMoveRight()) {
+            currentColumn++;
+            soundPlayer.play("move.wav", false);
+        }
+        repaint();
+    }
+
+    public void rotateTetronimo() {
+        if (canRotate()) {
+            rotate();
+            soundPlayer.play("rotate.wav", false);
+        }
+        repaint();
+    }
+
+    public void moveDown() {
+        if (!softDrop) {
+            softDrop = true;
+            gravityThread.interrupt();
+        }
+        repaint();
+    }
+
+    public void hardDrop() {
+        while(canMoveDown(currentRow)) {
+            currentRow += 1;
+            scoreBoard.addScore(2);
+        }
+        hardDrop = true;
+        repaint();
+    }
+
+    public void setSoftDrop(Boolean softDrop) {
+        this.softDrop = softDrop;
+        repaint();
     }
 
 
