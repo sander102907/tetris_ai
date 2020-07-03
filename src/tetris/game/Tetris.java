@@ -36,8 +36,8 @@ public class Tetris extends JPanel implements Runnable {
         currentTetronimo = nextTetronimo;
         nextTetronimo = getRandomTetronimo();
         scoreBoard.drawPreviewTetronimo(nextTetronimo);
-        currentRow = 0;
-        currentColumn = 5;
+        currentRow = 2;
+        currentColumn = 4;
     }
 
     public void moveLeft() {
@@ -73,11 +73,12 @@ public class Tetris extends JPanel implements Runnable {
     }
 
     public void hardDrop() {
+        hardDrop = true;
         while(canMoveDown(currentRow)) {
             currentRow += 1;
             scoreBoard.addScore(2);
         }
-        hardDrop = true;
+        gravityThread.interrupt();
         repaint();
     }
 
@@ -152,6 +153,12 @@ public class Tetris extends JPanel implements Runnable {
                 }
 
             } catch (InterruptedException e) {
+                if (hardDrop) {
+                    hardDrop = false;
+                    tetronimoLanded();
+                    soundPlayer.play("lock.wav", false);
+                }
+                repaint();
                 continue;
             }
 
@@ -168,7 +175,6 @@ public class Tetris extends JPanel implements Runnable {
                     hardDrop = false;
                 }
 
-                soundPlayer.play("lock.wav", false);
                 if (canMoveDown(currentRow)) {
                     currentRow += 1;
                 } else {
@@ -249,13 +255,13 @@ public class Tetris extends JPanel implements Runnable {
         int[] offsets = getRotationOffsets();
 
 
-        for (int[] coords: currentTetronimo.pos) {
+        for (int[] coords: currentTetronimo.getRotationPos()) {
             if (
-                    currentRow + coords[0] < 0 ||
-                    currentRow + coords[0] >= grid[0].length ||
+                    currentRow + coords[1] < 0 ||
+                    currentRow + coords[1] >= grid[0].length ||
 //                    currentColumn + coords[1] < 0 ||
 //                    currentColumn + coords[1] >= grid.length ||
-                    grid[-coords[1] + currentColumn - offsets[0] - offsets[1]][coords[0] + currentRow] != -1
+                    grid[coords[0] + currentColumn - offsets[0] - offsets[1]][coords[1] + currentRow] != -1
             ) {
                 return false;
             }
@@ -282,13 +288,13 @@ public class Tetris extends JPanel implements Runnable {
         int rightOffset = 0;
         int leftOffset = 0;
 
-        for (int[] coords: currentTetronimo.pos) {
+        for (int[] coords: currentTetronimo.getRotationPos()) {
             // If after rotations, will be out of grid on left side
-            if (-coords[1] + currentColumn < leftOffset) {
-                leftOffset = -coords[1] + currentColumn;
+            if (coords[0] + currentColumn < leftOffset) {
+                leftOffset = coords[0] + currentColumn;
                 // If after rotations, will be out of grid on right side
-            } else if (-coords[1] + currentColumn - grid.length + 1 > rightOffset) {
-                rightOffset =  -coords[1] + currentColumn - grid.length + 1;
+            } else if (coords[0] + currentColumn - grid.length + 1 > rightOffset) {
+                rightOffset =  coords[0] + currentColumn - grid.length + 1;
             }
         }
 
@@ -316,34 +322,35 @@ public class Tetris extends JPanel implements Runnable {
         }
 
         // Check if you are game over
-        if (currentRow < 4) {
+        if (maxRow <= 3) {
             stop();
-        }
+        } else {
 
-        // Remove any rotations of the tetronimo
-        currentTetronimo.reset();
-        getTetronimo();
+            // Remove any rotations of the tetronimo
+            currentTetronimo.reset();
+            getTetronimo();
 
-        int fullRows = 0;
-        // Check between the min and max row of the landed tetronimo if there is a full row
-        for (int row = minRow; row <= maxRow; row++) {
-            Boolean fullRow = true;
-            for (int col = 0; col < grid.length; col++) {
-                if (grid[col][row] == -1) {
-                    fullRow = false;
-                    break;
+            int fullRows = 0;
+            // Check between the min and max row of the landed tetronimo if there is a full row
+            for (int row = minRow; row <= maxRow; row++) {
+                Boolean fullRow = true;
+                for (int col = 0; col < grid.length; col++) {
+                    if (grid[col][row] == -1) {
+                        fullRow = false;
+                        break;
+                    }
+                }
+
+                // If there is a full row, remove it
+                if (fullRow) {
+                    fullRows += 1;
+                    scoreBoard.addLine();
+                    removeRow(row);
                 }
             }
 
-            // If there is a full row, remove it
-            if (fullRow) {
-                fullRows += 1;
-                scoreBoard.addLine();
-                removeRow(row);
-            }
+            scoreBoard.addScore(lineScore(scoreBoard.getLevel(), fullRows));
         }
-
-        scoreBoard.addScore(lineScore(scoreBoard.getLevel(), fullRows));
     }
 
     private void removeRow(int fullRow) {

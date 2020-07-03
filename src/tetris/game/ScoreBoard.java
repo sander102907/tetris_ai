@@ -106,9 +106,9 @@ public class ScoreBoard extends JPanel {
 
             if (previewTetronimo .tetronimoType == TetronimoType.I_Tetronimo ||
                     previewTetronimo.tetronimoType == TetronimoType.O_Tetronimo) {
-                drawRect((Graphics2D) g, coords[0] + 3, coords[1] + 1, color, borderColor);
+                drawRect((Graphics2D) g, coords[0] + 2, coords[1] + 1, color, borderColor);
             } else {
-                drawRect((Graphics2D) g, coords[0] + 3.5, coords[1] + 1, color, borderColor);
+                drawRect((Graphics2D) g, coords[0] + 2.5, coords[1] + 1, color, borderColor);
             }
         }
     }

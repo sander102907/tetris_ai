@@ -38,7 +38,7 @@ public class GUI extends JFrame {
             }
         };
 
-        container.setLayout(new FlowLayout());
+        container.setLayout(new BorderLayout());
 
         setContentPane(container);
 
@@ -49,6 +49,8 @@ public class GUI extends JFrame {
         setVisible(true);
 
         start.addActionListener(e -> {
+            container.setLayout(new FlowLayout());
+
             Tetris tetris = new Tetris();
             getContentPane().add(tetris);
 
@@ -65,6 +67,8 @@ public class GUI extends JFrame {
 
 
         startTwoPlayer.addActionListener(e -> {
+            container.setLayout(new FlowLayout());
+
             Tetris tetris2 = new Tetris();
             getContentPane().add(tetris2);
 

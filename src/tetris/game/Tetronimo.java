@@ -2,6 +2,7 @@ package tetris.game;
 
 public class Tetronimo {
     final int[][] pos;
+    private int rotation = 0;
     TetronimoType tetronimoType;
 
     public Tetronimo(TetronimoType tetronimoType) {
@@ -11,20 +12,25 @@ public class Tetronimo {
     }
 
     public void reset() {
+        rotation = 0;
         for (int i = 0; i < pos.length; i++) {
-            pos[i] = tetronimoType.tetronimo[i].clone();
+            pos[i] = tetronimoType.tetronimo[rotation][i].clone();
         }
     }
 
     public void rotate() {
-        if (tetronimoType != TetronimoType.O_Tetronimo) {
-            // Clockwise rotation
-            for (int[] coords : pos) {
-                int tmp = coords[0];
-                coords[0] = -coords[1];
-                coords[1] = tmp;
-            }
+        rotation = (rotation + 1) % 4;
+        for (int i = 0; i < pos.length; i++) {
+            pos[i] = tetronimoType.tetronimo[rotation][i].clone();
         }
+    }
+
+    public int[][] getRotationPos() {
+        int[][] rotationPos = new int[4][2];
+        for (int i = 0; i < pos.length; i++) {
+            rotationPos[i] = tetronimoType.tetronimo[(rotation + 1) % 4][i].clone();
+        }
+        return rotationPos;
     }
 }
 
