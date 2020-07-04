@@ -2,13 +2,15 @@ package tetris.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.*;
 import java.util.Timer;
 
 import static tetris.game.Config.*;
 import static tetris.game.Draw.drawRect;
 
-public class Tetris extends JPanel implements Runnable {
+public class Tetris extends JPanel implements Runnable, Serializable {
+    private static final long serialVersionUID = 1L;
     static final Random rand = new Random();
     private int currentRow;
     private int currentColumn;
@@ -17,14 +19,13 @@ public class Tetris extends JPanel implements Runnable {
     private Tetronimo nextTetronimo;
     private Boolean softDrop = false;
     private Boolean hardDrop = false;
+    private Boolean paused = false;
 
     private Set<Integer>  randomTetronimos;
 
-    Timer timer;
-    Thread gravityThread;
-    private SoundPlayer soundPlayer;
+    private transient Timer timer;
+    private Thread gravityThread;
     private ScoreBoard scoreBoard;
-
 
     public Tetris() {
         setPreferredSize(new Dimension(height/2, height));
@@ -43,7 +44,7 @@ public class Tetris extends JPanel implements Runnable {
     public void moveLeft() {
         if (canMoveLeft()) {
             currentColumn--;
-            soundPlayer.play("move.wav", false);
+            SoundPlayer.play("move.wav", false);
         }
         repaint();
     }
@@ -51,7 +52,7 @@ public class Tetris extends JPanel implements Runnable {
     public void moveRight() {
         if (canMoveRight()) {
             currentColumn++;
-            soundPlayer.play("move.wav", false);
+            SoundPlayer.play("move.wav", false);
         }
         repaint();
     }
@@ -59,7 +60,7 @@ public class Tetris extends JPanel implements Runnable {
     public void rotateTetronimo() {
         if (canRotate()) {
             currentTetronimo.rotate();
-            soundPlayer.play("rotate.wav", false);
+            SoundPlayer.play("rotate.wav", false);
         }
         repaint();
     }
@@ -87,6 +88,23 @@ public class Tetris extends JPanel implements Runnable {
         repaint();
     }
 
+    public void setPause() {
+        if (!paused) {
+            paused = true;
+            stop();
+        } else {
+            paused = false;
+            gravityThread = new Thread(this);
+            gravityThread.start();
+            timer = new Timer(true);
+            timer.schedule(new GameTimer(scoreBoard), 0, 1000);
+        }
+    }
+
+    public Boolean getPause() {
+        return paused;
+    }
+
 
     // Random Generator generates a sequence of all seven one-sided tetrominoes (I, J, L, O, S, T, Z) permuted
     // randomly, as if they were drawn from a bag. Then it deals all seven tetrominoes to the piece sequence
@@ -107,7 +125,7 @@ public class Tetris extends JPanel implements Runnable {
         return new Tetronimo(TetronimoType.values()[randomTetronimo]);
     }
 
-    private void start() {
+    public void start() {
         initGrid();
 
         timer = new Timer(true);
@@ -120,19 +138,20 @@ public class Tetris extends JPanel implements Runnable {
 
         gravityThread = new Thread(this);
         gravityThread.start();
-
-        soundPlayer = new SoundPlayer();
-
     }
 
 
-    private void stop() {
+    public void stop() {
         if (gravityThread != null) {
             Thread temp = gravityThread;
             gravityThread = null;
             temp.interrupt();
             timer.cancel();
             timer.purge();
+
+            if (!paused) {
+                GameFilesOperator.setScore(scoreBoard.getScore());
+            }
         }
     }
 
@@ -140,14 +159,23 @@ public class Tetris extends JPanel implements Runnable {
     public void run() {
         while (Thread.currentThread() == gravityThread) {
             try {
-                if (currentRow < 1) {
+                if (paused) {
+                    synchronized (gravityThread) {
+                        try {
+                            gravityThread.wait();
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                }
+
+                if (currentRow < 1 && canMoveDown((currentRow))) {
                     currentRow++;
                 }
 
                 if (softDrop) {
                     Thread.sleep(softDropSpeed);
                     scoreBoard.addScore(1);
-                    soundPlayer.play("softdrop.wav", false);
+                    SoundPlayer.play("softdrop.wav", false);
                 } else {
                     Thread.sleep((int) levelSpeeds[scoreBoard.getLevel()]);
                 }
@@ -156,7 +184,7 @@ public class Tetris extends JPanel implements Runnable {
                 if (hardDrop) {
                     hardDrop = false;
                     tetronimoLanded();
-                    soundPlayer.play("lock.wav", false);
+                    SoundPlayer.play("lock.wav", false);
                 }
                 repaint();
                 continue;
@@ -179,7 +207,7 @@ public class Tetris extends JPanel implements Runnable {
                     currentRow += 1;
                 } else {
                     tetronimoLanded();
-                    soundPlayer.play("lock.wav", false);
+                    SoundPlayer.play("lock.wav", false);
                 }
             }
 
@@ -354,7 +382,7 @@ public class Tetris extends JPanel implements Runnable {
     }
 
     private void removeRow(int fullRow) {
-        soundPlayer.play("gem.wav", false);
+        SoundPlayer.play("gem.wav", false);
         int centerCol = grid.length/2;
         for (int col = 0; col < grid.length/2; col++) {
             grid[centerCol - col - 1][fullRow] = -1;
@@ -377,6 +405,9 @@ public class Tetris extends JPanel implements Runnable {
     }
 
     private void drawGridTetronimos(Graphics2D g) {
+        if (paused) {
+            g.setComposite(AlphaComposite.SrcOver.derive(0.15f));
+        }
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[0].length; j++) {
                 if (grid[i][j] != -1) {
@@ -388,7 +419,6 @@ public class Tetris extends JPanel implements Runnable {
 
     public void setScoreBoard(ScoreBoard scoreBoard) {
         this.scoreBoard = scoreBoard;
-        start();
     }
 
     private void drawGridLines(Graphics2D g) {
@@ -425,6 +455,4 @@ public class Tetris extends JPanel implements Runnable {
             drawRect(g, coords[0] + currentColumn, coords[1] + row - 2, Color.black, borderColor);
         }
     }
-
-
 }

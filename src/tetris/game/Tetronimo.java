@@ -1,6 +1,9 @@
 package tetris.game;
 
-public class Tetronimo {
+import java.io.Serializable;
+
+public class Tetronimo implements Serializable {
+    private static final long serialVersionUID = 1L;
     final int[][] pos;
     private int rotation = 0;
     TetronimoType tetronimoType;

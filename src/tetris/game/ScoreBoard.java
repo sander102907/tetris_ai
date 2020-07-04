@@ -2,20 +2,24 @@ package tetris.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.TimerTask;
 
 import static tetris.game.Config.*;
 import static tetris.game.Draw.drawRect;
 
 
-public class ScoreBoard extends JPanel {
+public class ScoreBoard extends JPanel implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int score;
     private int level;
     private int lines;
     private int time;
+    private int highScore;
 
     private Tetronimo previewTetronimo;
     JLabel previewTetronimoLabel;
+    JLabel highscoreLabel;
     JLabel scoreLabel;
     JLabel levelLabel;
     JLabel linesLabel;
@@ -34,6 +38,13 @@ public class ScoreBoard extends JPanel {
         previewTetronimoLabel.setBounds(scoreBoardMargin + 20, 0, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
         previewTetronimoLabel.setFont(new Font("Century", Font.BOLD, 15));
         add(previewTetronimoLabel);
+
+        highScore = GameFilesOperator.getHighscore();
+        highscoreLabel = new JLabel("HIGHSCORE: " + highScore);
+        highscoreLabel.setForeground(Color.white);
+        highscoreLabel.setBounds((int) (0.75 * rectSize) + scoreBoardMargin, 15 * rectSize, scoreBoardWidth - 2 * scoreBoardMargin, rectSize);
+        highscoreLabel.setFont(new Font("Century", Font.BOLD, 15));
+        add(highscoreLabel);
 
         score = 0;
         scoreLabel = new JLabel("SCORE:" + score);
@@ -67,6 +78,15 @@ public class ScoreBoard extends JPanel {
     public void addScore(int update) {
         score += update;
         scoreLabel.setText("SCORE: " + score);
+
+        if (score > highScore) {
+            highScore = score;
+            highscoreLabel.setText("HIGHSCORE: " + highScore);
+        }
+    }
+
+    public int getScore() {
+        return score;
     }
 
     public void addTime() {
@@ -98,7 +118,7 @@ public class ScoreBoard extends JPanel {
         g.setColor(new Color(0, 0, 0, 220));
         g.fillRect((int) (0.75 * rectSize), 0, (int) (4.5 * rectSize), 4 * rectSize);
 
-        g.fillRect((int) (0.75 * rectSize), 16 * rectSize,  (int) (4.5 * rectSize), 4 * rectSize);
+        g.fillRect((int) (0.75 * rectSize), 15 * rectSize,  (int) (4.5 * rectSize), 5 * rectSize);
 
         for (int[] coords: previewTetronimo.pos) {
             Color color = tetronimoColors[previewTetronimo.tetronimoType.ordinal()];

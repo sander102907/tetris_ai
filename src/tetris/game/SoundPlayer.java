@@ -5,7 +5,7 @@ import java.io.File;
 import static tetris.game.Config.soundPath;
 
 public class SoundPlayer {
-    public void play(String path, Boolean loop) {
+    public static void play(String path, Boolean loop) {
         File file = new File(soundPath + path);
         try {
             final Clip clip = (Clip)AudioSystem.getLine(new Line.Info(Clip.class));

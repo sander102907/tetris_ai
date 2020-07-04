@@ -8,6 +8,30 @@ public final class Config {
     final static int columns = 10;
     final static int scoreBoardWidth = 300;
     final static int rectSize = height/(rows-2);
+
+    // Keybindings with the following order: Rotate, softdrop, left move, right move, hard drop, pause
+    final static String[][] keyBindingsPlayers = {
+            {"UP", "DOWN", "LEFT", "RIGHT", "SPACE", "ESCAPE"}, // Player 1
+            {"W", "S", "A", "D", "R", "ESCAPE"}                 // Player 2
+    };
+
+    // Where the game files are stored (savegames, highscores etc.)
+    final static String gamefilePath = "./resources/gamefiles/";
+    final static String scoresFile = "scores.txt";
+    final static String savegameFile = "savegame.ser";
+    final static String savegameScoreboardFile = "savegame_scoreboard.ser";
+
+    // Save game states for 2 player games
+    final static String[] savegame2pFiles = {"savegame_2p_1.ser", "savegame_2p_2.ser"};
+    final static String[] savegameScoreboard2pFiles = {"savegame_scoreboard_2p_1.ser", "savegame_scoreboard_2p_2.ser"};
+
+
+    final static String soundPath = "./resources/sounds/";
+
+    final static int scoreBoardMargin = 30;
+
+
+
     final static Color[] tetronimoColors = {
             new Color(85, 159, 219), // I piece
             new Color(16, 8, 224), //J piece
@@ -28,9 +52,6 @@ public final class Config {
             new Color(143, 10, 130) // T piece
     };
 
-    final static String soundPath = "./resources/sounds/";
-
-    final static int scoreBoardMargin = 30;
 
     final static int lineScore(int level, int amtLines) {
         if (amtLines == 1) {
