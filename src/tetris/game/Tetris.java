@@ -20,6 +20,8 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     private Boolean softDrop = false;
     private Boolean hardDrop = false;
     private Boolean paused = false;
+    private Boolean gameOver = false;
+    private Boolean pieceLanded = false;
 
     private Set<Integer>  randomTetronimos;
 
@@ -42,7 +44,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     }
 
     public void moveLeft() {
-        if (canMoveLeft()) {
+        if (canMoveLeft(grid, currentRow, currentColumn, currentTetronimo)) {
             currentColumn--;
             SoundPlayer.play("move.wav", false);
         }
@@ -50,7 +52,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     }
 
     public void moveRight() {
-        if (canMoveRight()) {
+        if (canMoveRight(grid, currentRow, currentColumn, currentTetronimo)) {
             currentColumn++;
             SoundPlayer.play("move.wav", false);
         }
@@ -58,7 +60,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     }
 
     public void rotateTetronimo() {
-        if (canRotate()) {
+        if (canRotate(grid, currentRow, currentColumn, currentTetronimo)) {
             currentTetronimo.rotate();
             SoundPlayer.play("rotate.wav", false);
         }
@@ -75,7 +77,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
 
     public void hardDrop() {
         hardDrop = true;
-        while(canMoveDown(currentRow)) {
+        while(canMoveDown(grid, currentRow, currentColumn, currentTetronimo)) {
             currentRow += 1;
             scoreBoard.addScore(2);
         }
@@ -90,6 +92,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
 
     public void setPause() {
         if (!paused) {
+            SoundPlayer.play("pause.wav", false);
             paused = true;
             stop();
         } else {
@@ -104,7 +107,6 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     public Boolean getPause() {
         return paused;
     }
-
 
     // Random Generator generates a sequence of all seven one-sided tetrominoes (I, J, L, O, S, T, Z) permuted
     // randomly, as if they were drawn from a bag. Then it deals all seven tetrominoes to the piece sequence
@@ -168,7 +170,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
                     }
                 }
 
-                if (currentRow < 1 && canMoveDown((currentRow))) {
+                if (currentRow < 1 && canMoveDown(grid, currentRow, currentColumn, currentTetronimo)) {
                     currentRow++;
                 }
 
@@ -190,7 +192,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
                 continue;
             }
 
-            if (canMoveDown(currentRow)) {
+            if (canMoveDown(grid, currentRow, currentColumn, currentTetronimo)) {
                 currentRow += 1;
             } else {
                 if (!hardDrop) {
@@ -203,7 +205,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
                     hardDrop = false;
                 }
 
-                if (canMoveDown(currentRow)) {
+                if (canMoveDown(grid, currentRow, currentColumn, currentTetronimo)) {
                     currentRow += 1;
                 } else {
                     tetronimoLanded();
@@ -249,8 +251,8 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         }
     }
 
-    private Boolean canMoveDown(int currentRow) {
-        for (int[] coords: currentTetronimo.pos) {
+    public Boolean canMoveDown(int[][] grid, int currentRow, int currentColumn, Tetronimo tetronimo) {
+        for (int[] coords: tetronimo.pos) {
             if (
 //                    currentRow + coords[1] + 1 >= 0 &&
 //                    currentColumn + coords[0] < grid.length &&
@@ -265,9 +267,9 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         return true;
     }
 
-    private Boolean canMoveLeft() {
+    public Boolean canMoveLeft(int[][] grid, int currentRow, int currentColumn, Tetronimo tetronimo) {
 
-        for (int[] coords: currentTetronimo.pos) {
+        for (int[] coords: tetronimo.pos) {
             if (
 //                    currentRow + coords[1] >= 0 &&
                     (currentColumn + coords[0] <= 0 ||
@@ -279,11 +281,11 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         return true;
     }
 
-    private Boolean canRotate() {
-        int[] offsets = getRotationOffsets();
+    public Boolean canRotate(int[][] grid, int currentRow, int currentColumn, Tetronimo tetronimo) {
+        int[] offsets = getRotationOffsets(grid, currentColumn, tetronimo);
 
 
-        for (int[] coords: currentTetronimo.getRotationPos()) {
+        for (int[] coords: tetronimo.getRotationPos()) {
             if (
                     currentRow + coords[1] < 0 ||
                     currentRow + coords[1] >= grid[0].length ||
@@ -299,8 +301,8 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         return true;
     }
 
-    private Boolean canMoveRight() {
-        for (int[] coords: currentTetronimo.pos) {
+    public Boolean canMoveRight(int[][] grid, int currentRow, int currentColumn, Tetronimo tetronimo) {
+        for (int[] coords: tetronimo.pos) {
             if (
 //                    currentRow + coords[1] >= 0 &&
                     (currentColumn + coords[0] >= grid.length - 1 ||
@@ -312,11 +314,11 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         return true;
     }
 
-    public int[] getRotationOffsets() {
+    public int[] getRotationOffsets(int[][] grid, int currentColumn, Tetronimo tetronimo) {
         int rightOffset = 0;
         int leftOffset = 0;
 
-        for (int[] coords: currentTetronimo.getRotationPos()) {
+        for (int[] coords: tetronimo.getRotationPos()) {
             // If after rotations, will be out of grid on left side
             if (coords[0] + currentColumn < leftOffset) {
                 leftOffset = coords[0] + currentColumn;
@@ -330,27 +332,16 @@ public class Tetris extends JPanel implements Runnable, Serializable {
     }
 
     private void tetronimoLanded() {
-        // get rows tetronimo has landed
-        int minRow = rows - 1;
-        int maxRow = 0;
+        int[] minMaxRows = addTetronimoToGrid(grid, currentRow, currentColumn, currentTetronimo);
+        int minRow = minMaxRows[0];
+        int maxRow = minMaxRows[1];
+        pieceLanded = true;
+        System.out.println("p");
 
-        // update grid with landed tetronimo
-        for (int[] coords: currentTetronimo.pos) {
-            if (currentRow >= 0) {
-                grid[coords[0] + currentColumn][coords[1] + currentRow] = currentTetronimo.tetronimoType.ordinal();
-
-                if (coords[1] + currentRow < minRow) {
-                    minRow = coords[1] + currentRow;
-                }
-
-                if (coords[1] + currentRow > maxRow) {
-                    maxRow = coords[1] + currentRow;
-                }
-            }
-        }
 
         // Check if you are game over
         if (maxRow <= 3) {
+            gameOver = true;
             stop();
         } else {
 
@@ -379,6 +370,29 @@ public class Tetris extends JPanel implements Runnable, Serializable {
 
             scoreBoard.addScore(lineScore(scoreBoard.getLevel(), fullRows));
         }
+    }
+
+    public int[] addTetronimoToGrid(int[][] grid, int currentRow, int currentColumn, Tetronimo tetronimo) {
+        // get rows tetronimo has landed
+        int minRow = rows - 1;
+        int maxRow = 0;
+
+        // update grid with landed tetronimo
+        for (int[] coords: tetronimo.pos) {
+            if (currentRow >= 0) {
+                grid[coords[0] + currentColumn][coords[1] + currentRow] = tetronimo.tetronimoType.ordinal();
+
+                if (coords[1] + currentRow < minRow) {
+                    minRow = coords[1] + currentRow;
+                }
+
+                if (coords[1] + currentRow > maxRow) {
+                    maxRow = coords[1] + currentRow;
+                }
+            }
+        }
+
+        return new int[] {minRow, maxRow};
     }
 
     private void removeRow(int fullRow) {
@@ -445,7 +459,7 @@ public class Tetris extends JPanel implements Runnable, Serializable {
 
     private void drawTetronimoDropPreview(Graphics2D g) {
         int row = currentRow;
-        while(canMoveDown(row)) {
+        while(canMoveDown(grid, row, currentColumn, currentTetronimo)) {
             row += 1;
         }
 
@@ -454,5 +468,43 @@ public class Tetris extends JPanel implements Runnable, Serializable {
         for (int[] coords: currentTetronimo.pos) {
             drawRect(g, coords[0] + currentColumn, coords[1] + row - 2, Color.black, borderColor);
         }
+    }
+
+
+    // AI helper functions
+    public int[][] getGrid() {
+        return grid;
+    }
+
+    public int getCurrentColumn() {
+        return currentColumn;
+    }
+
+    public int getCurrentRow() {
+        return currentRow;
+    }
+
+    public Tetronimo getCurrentTetronimo() {
+        return currentTetronimo;
+    }
+
+    public Tetronimo getNextTetronimo() {
+        return nextTetronimo;
+    }
+
+    public Boolean getGameOver() {
+        return gameOver;
+    }
+
+    public int getScore() {
+        return scoreBoard.getScore();
+    }
+
+    public Boolean getPieceLanded() {
+        return pieceLanded;
+    }
+
+    public void setPieceLanded(Boolean landed) {
+        pieceLanded = landed;
     }
 }

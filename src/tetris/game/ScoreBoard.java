@@ -98,6 +98,9 @@ public class ScoreBoard extends JPanel implements Serializable {
         lines += 1;
         linesLabel.setText("LINES: " + lines);
 
+        if (lines/10 > level) {
+            SoundPlayer.play("bravo.wav", false);
+        }
         level = lines/10;
         levelLabel.setText("LEVEL: " + level);
     }

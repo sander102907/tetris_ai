@@ -35,5 +35,9 @@ public class Tetronimo implements Serializable {
         }
         return rotationPos;
     }
+
+    public TetronimoType getTetronimoType() {
+        return tetronimoType;
+    }
 }
 

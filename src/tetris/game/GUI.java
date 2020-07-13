@@ -1,5 +1,7 @@
 package tetris.game;
 
+import tetris.ai.AI;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -14,6 +16,7 @@ public class GUI extends JFrame {
     private JButton start;
     private JButton resumeTwoPlayerSaveGame;
     private JButton startTwoPlayer;
+    private JButton startAI;
     private JButton exit;
     private JButton resumeGame;
     private JButton quitToMenu;
@@ -60,6 +63,8 @@ public class GUI extends JFrame {
         setVisible(true);
 
         start.addActionListener(e -> {
+            SoundPlayer.play("pause.wav", false);
+
             container.setLayout(new FlowLayout());
 
             Tetris tetris = new Tetris();
@@ -109,6 +114,7 @@ public class GUI extends JFrame {
 
 
         startTwoPlayer.addActionListener(e -> {
+            SoundPlayer.play("pause.wav", false);
             container.setLayout(new FlowLayout());
 
             Tetris tetris2 = new Tetris();
@@ -169,6 +175,31 @@ public class GUI extends JFrame {
                 tetris.setPause();
                 tetris.setPause();
             }
+        });
+
+        startAI.addActionListener(e -> {
+            SoundPlayer.play("pause.wav", false);
+
+            container.setLayout(new FlowLayout());
+
+            Tetris tetris = new Tetris();
+            getContentPane().add(tetris);
+
+            ScoreBoard scoreBoard = new ScoreBoard();
+            tetris.setScoreBoard(scoreBoard);
+
+            getContentPane().add(scoreBoard);
+
+            getContentPane().remove(menu);
+
+            games = new Tetris[]{tetris};
+            scoreBoards = new ScoreBoard[]{scoreBoard};
+
+            AI ai = new AI(tetris);
+
+            tetris.start();
+
+            ai.start();
         });
 
         exit.addActionListener(e -> System.exit(0));
@@ -286,6 +317,11 @@ public class GUI extends JFrame {
                 startTwoPlayer.setFont(new Font("century", Font.PLAIN, 20));
             }
 
+            if (startAI == null) {
+                startAI = new JButton("Start AI");
+                startAI.setFont(new Font("century", Font.PLAIN, 20));
+            }
+
             if (exit == null) {
                 exit = new JButton("Exit");
                 exit.setFont(new Font("century", Font.PLAIN, 20));
@@ -309,6 +345,7 @@ public class GUI extends JFrame {
             }
 
             buttons.add(startTwoPlayer, gbc);
+            buttons.add(startAI, gbc);
             buttons.add(exit, gbc);
 
 
